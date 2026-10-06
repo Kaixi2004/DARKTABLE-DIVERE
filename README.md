@@ -16,6 +16,5 @@
 
 - **代码**：**GPL-3.0**（darktable 及其衍生，见 `LICENSE`）
 - **diVERE 算法 / 相纸曲线 / 白平衡模型**：**MIT**（<https://github.com/V7CN/DiVERE>，版权声明保留于 `negadoctor_curves.h` / `negadoctor.c` 头部）
-- **spektrafilm 数据衍生物**：**CC BY-SA 4.0**，作者 Andrea Volpato（<https://github.com/andreavolpato/spektrafilm>，许可全文见 `SPEKTRAFILM_LICENSE.txt`）—— spectral film modeling powered by spektrafilm
 
-> 提示：源码头部版权声明（GPL/MIT）保留不动；`LICENSE`、`SPEKTRAFILM_LICENSE.txt`、`CITATION.cff` 请勿删除。
+> 提示：源码头部版权声明（GPL/MIT）保留不动；`LICENSE` 请勿删除。
