@@ -1,4 +1,4 @@
-# Darktable——DiVERE  By ：银盐菲林日记
+# Darktable—DiVERE  By ：银盐菲林日记
 
 基于Darkable：https://github.com/darktable-org/darktable‘
    DiVERE：https://github.com/V7CN/DiVERE
