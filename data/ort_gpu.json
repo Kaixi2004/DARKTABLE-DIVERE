@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "min_ort_version": "1.18.0",
+  "install_docs": {
+    "nvidia": "https://developer.nvidia.com/cudnn-downloads",
+    "amd": "https://rocm.docs.amd.com/projects/install-on-linux/en/latest/"
+  },
+  "packages": [
+    {
+      "vendor": "nvidia",
+      "platform": "linux",
+      "arch": "x86_64",
+      "cuda_min": "12.0",
+      "cuda_max": "12.99",
+      "source": {
+        "type": "github_release",
+        "repo": "microsoft/onnxruntime",
+        "asset_pattern": "onnxruntime-linux-x64-gpu_cuda12-{version}.tgz"
+      },
+      "format": "tgz",
+      "lib_pattern": "libonnxruntime",
+      "install_subdir": "onnxruntime-cuda",
+      "requirements": "CUDA 12, cuDNN 9"
+    },
+    {
+      "vendor": "nvidia",
+      "platform": "linux",
+      "arch": "x86_64",
+      "cuda_min": "13.0",
+      "cuda_max": "13.99",
+      "source": {
+        "type": "pypi",
+        "package": "onnxruntime-gpu",
+        "platform_tags": ["manylinux_2_28_x86_64", "manylinux_2_27_x86_64"],
+        "python_tag": "cp312"
+      },
+      "format": "whl",
+      "lib_pattern": "libonnxruntime",
+      "install_subdir": "onnxruntime-cuda",
+      "requirements": "CUDA 13, cuDNN 9"
+    },
+    {
+      "vendor": "nvidia",
+      "platform": "windows",
+      "arch": "x86_64",
+      "cuda_min": "12.0",
+      "cuda_max": "12.99",
+      "source": {
+        "type": "github_release",
+        "repo": "microsoft/onnxruntime",
+        "asset_pattern": "onnxruntime-win-x64-gpu_cuda12-{version}.zip"
+      },
+      "format": "zip",
+      "lib_pattern": "onnxruntime",
+      "install_subdir": "onnxruntime-cuda",
+      "requirements": "CUDA 12, cuDNN 9"
+    },
+    {
+      "vendor": "nvidia",
+      "platform": "windows",
+      "arch": "x86_64",
+      "cuda_min": "13.0",
+      "cuda_max": "13.99",
+      "source": {
+        "type": "pypi",
+        "package": "onnxruntime-gpu",
+        "platform_tags": ["win_amd64"],
+        "python_tag": "cp312"
+      },
+      "format": "whl",
+      "lib_pattern": "onnxruntime",
+      "install_subdir": "onnxruntime-cuda",
+      "requirements": "CUDA 13, cuDNN 9"
+    },
+    {
+      "vendor": "amd",
+      "platform": "linux",
+      "arch": "x86_64",
+      "rocm_min": "6.0",
+      "rocm_max": "6.99",
+      "source": {
+        "type": "pypi",
+        "package": "onnxruntime-rocm",
+        "platform_tags": ["manylinux_2_35_x86_64", "manylinux_2_34_x86_64", "manylinux_2_28_x86_64", "manylinux_2_27_x86_64"],
+        "python_tag": "cp312"
+      },
+      "format": "whl",
+      "lib_pattern": "libonnxruntime",
+      "install_subdir": "onnxruntime-rocm",
+      "requirements": "ROCm 6"
+    },
+    {
+      "vendor": "amd",
+      "platform": "linux",
+      "arch": "x86_64",
+      "rocm_min": "7.0",
+      "rocm_max": "7.99",
+      "source": {
+        "type": "pypi",
+        "package": "onnxruntime-migraphx",
+        "platform_tags": ["manylinux_2_35_x86_64", "manylinux_2_34_x86_64", "manylinux_2_28_x86_64", "manylinux_2_27_x86_64"],
+        "python_tag": "cp312"
+      },
+      "format": "whl",
+      "lib_pattern": "libonnxruntime",
+      "install_subdir": "onnxruntime-migraphx",
+      "requirements": "ROCm 7, MIGraphX"
+    },
+    {
+      "vendor": "intel",
+      "platform": "linux",
+      "arch": "x86_64",
+      "source": {
+        "type": "pypi",
+        "package": "onnxruntime-openvino",
+        "platform_tags": ["manylinux_2_28_x86_64"],
+        "python_tag": "cp312"
+      },
+      "format": "whl",
+      "lib_pattern": "libonnxruntime",
+      "install_subdir": "onnxruntime-openvino",
+      "requirements": "Intel GPU driver (OpenCL)",
+      "lib_extra_patterns": ["libopenvino", "libtbb"]
+    },
+    {
+      "vendor": "intel",
+      "platform": "windows",
+      "arch": "x86_64",
+      "source": {
+        "type": "pypi",
+        "package": "onnxruntime-openvino",
+        "platform_tags": ["win_amd64"],
+        "python_tag": "cp312"
+      },
+      "format": "whl",
+      "lib_pattern": "onnxruntime",
+      "install_subdir": "onnxruntime-openvino",
+      "requirements": "Intel GPU driver",
+      "runtime_source": {
+        "type": "pypi",
+        "package": "openvino",
+        "platform_tags": ["win_amd64"],
+        "python_tag": "cp312"
+      },
+      "runtime_lib_pattern": "openvino",
+      "runtime_extra_patterns": ["tbb"]
+    }
+  ]
+}
