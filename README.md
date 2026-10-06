@@ -7,7 +7,7 @@
 
 集中在胶片数字化（负片反减）链路：
 
-- `src/iop/negadoctor.c` + `negadoctor_curves.h`：集成 DiVERE 负片反减管线——密度反演（pivot=0.7）、**分层反差**（PIVOT 折点）、通道 gamma（含**绿通道独立滑块**）、Status M→打印密度矩阵、相纸特性曲线（Kodak 2383/2393/Endura 系列、Ilford MGFB 0–5）
+- `src/iop/negadoctor.c` + `negadoctor_curves.h`：集成 DiVERE 负片反相管线——密度反相（pivot=0.7）、**分层反差**（PIVOT 折点）、通道 gamma（含**绿通道独立滑块**）、Status M→打印密度矩阵、相纸特性曲线（Kodak 2383/2393/Endura 系列、Ilford MGFB 0–5）
 - `src/iop/colorin.c` + `data/color/json/`：IDT / 工作色彩空间 JSON 加载（Kodak2383、KodakEnduraPremier），D60 白点
 - `data/negadoctor_ai/`：DiVERE Deep White Balance（`net_awb.onnx`）自动白平衡模型
 - macOS 打包脚本：`packaging/macosx/3_make_modified_local.sh`
