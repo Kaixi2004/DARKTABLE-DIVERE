@@ -1,6 +1,6 @@
 # Darktable—DiVERE  By ：银盐菲林日记
 
-基于Darkable：https://github.com/darktable-org/darktable‘
+基于Darkable：https://github.com/darktable-org/darktable
    DiVERE：https://github.com/V7CN/DiVERE
 
 ## 改动内容
@@ -11,14 +11,6 @@
 - `src/iop/colorin.c` + `data/color/json/`：IDT / 工作色彩空间 JSON 加载（Kodak2383、KodakEnduraPremier），D60 白点
 - `data/negadoctor_ai/`：DiVERE Deep White Balance（`net_awb.onnx`）自动白平衡模型
 - macOS 打包脚本：`packaging/macosx/3_make_modified_local.sh`
-
-## 构建（macOS）
-
-```sh
-mkdir -p build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build . -j4
-```
 
 ## 许可与数据来源
 
