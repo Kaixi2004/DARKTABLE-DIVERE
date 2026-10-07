@@ -13,8 +13,7 @@
 
 ## 支持作者
 如果这个工具对您的胶片摄影工作有切实帮助，欢迎请作者喝杯饮料或买一卷胶片！您的支持是开源项目持续发展的动力 😊
-<img width="554" height="592" alt="image" src="https://github.com/user-attachments/assets/13a80be6-777b-42cc-9c82-da5f9aa196f3" />
-<img width="1708" height="2560" alt="image" src="https://github.com/user-attachments/assets/7ab4eaa8-bd7e-486b-91c0-7fa93f2a79d3" />
+<img width="554" height="592" alt="image" src="https://github.com/user-attachments/assets/13a80be6-777b-42cc-9c82-da5f9aa196f3" /> <img width="1708" height="2560" alt="image" src="https://github.com/user-attachments/assets/1106a470-c10d-4834-ad91-9878ad7a4c72" />
 
 ## 许可与数据来源
 
