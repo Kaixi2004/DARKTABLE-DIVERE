@@ -13,11 +13,10 @@
 
 ## 支持作者
 如果这个工具对您的胶片摄影工作有切实帮助，欢迎请作者喝杯饮料或买一卷胶片！您的支持是开源项目持续发展的动力 😊
-<img width="554" height="592" alt="image" src="https://github.com/user-attachments/assets/13a80be6-777b-42cc-9c82-da5f9aa196f3" /> <img width="1362" height="1485" alt="image" src="https://github.com/user-attachments/assets/42e3609f-f8b0-4cec-9505-07a2d32af25e" />
+<img width="283" height="284" alt="aef76dac9c058220f1e283da54cc2e32" src="https://github.com/user-attachments/assets/c64e6382-15ce-4f97-a0e7-9629c4b9ce21" /><img width="283" height="283" alt="微信图片_20261007193323_261_121" src="https://github.com/user-attachments/assets/298c6fb4-295a-4fb4-b22e-11368e07626c" />
 
 ## 许可与数据来源
 
 - **代码**：**GPL-3.0**（darktable 及其衍生，见 `LICENSE`）
-- **diVERE 算法 / 相纸曲线 / 白平衡模型**：**MIT**（<https://github.com/V7CN/DiVERE>，版权声明保留于 `negadoctor_curves.h` / `negadoctor.c` 头部）
+- **DiVERE 算法 / 相纸曲线 / 白平衡模型**：**MIT**（<https://github.com/V7CN/DiVERE>，版权声明保留于 `negadoctor_curves.h` / `negadoctor.c` 头部）
 
-> 提示：源码头部版权声明（GPL/MIT）保留不动；`LICENSE` 请勿删除。
