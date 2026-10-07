@@ -13,6 +13,7 @@
 
 ## 支持作者
 如果这个工具对您的胶片摄影工作有切实帮助，欢迎请作者喝杯饮料或买一卷胶片！您的支持是开源项目持续发展的动力 😊
+
 <img width="283" height="284" alt="aef76dac9c058220f1e283da54cc2e32" src="https://github.com/user-attachments/assets/c64e6382-15ce-4f97-a0e7-9629c4b9ce21" /><img width="283" height="283" alt="微信图片_20261007193323_261_121" src="https://github.com/user-attachments/assets/298c6fb4-295a-4fb4-b22e-11368e07626c" />
 
 ## 许可与数据来源
