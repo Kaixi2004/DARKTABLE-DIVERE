@@ -1,0 +1,19 @@
+---
+Language:     Cpp
+BasedOnStyle: LLVM
+Standard:     c++20
+# Force pointers to the type for C++.
+DerivePointerAlignment: false
+PointerAlignment: Left
+IncludeCategories:
+  - Regex:           '^[<"]rawspeedconfig\.h[">]$'
+    Priority:        -20
+  - Regex:           '^[<"]RawSpeed-API\.h[">]$'
+    Priority:        -10
+  - Regex:           '^[<"](gtest|gmock|benchmark)/'
+    Priority:        20
+  - Regex:           '.*'
+    Priority:        10
+IncludeBlocks: Merge
+IncludeIsMainRegex: ''
+...

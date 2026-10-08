@@ -1,0 +1,9 @@
+{
+  "id": "divere_awb",
+  "name": "DiVERE Deep White Balance",
+  "description": "DiVERE automatic white balance for color negative film",
+  "task": "white_balance",
+  "backend": "onnx",
+  "arch": "DeepWB",
+  "num_inputs": 1
+}

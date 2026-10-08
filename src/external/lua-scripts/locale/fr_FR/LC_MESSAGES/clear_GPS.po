@@ -1,0 +1,35 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-12-27 17:55+0100\n"
+"PO-Revision-Date: 2020-12-27 17:55+0100\n"
+"Last-Translator: Christophe Agathon <christophe.agathon@gmail.com>\n"
+"Language-Team: \n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.3\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: _;gettext;dgettext:2;dcgettext:2ngettext:1,2;"
+"dngettext:2,3\n"
+"X-Poedit-Basepath: ../../../contrib\n"
+"X-Poedit-SearchPath-0: clear_GPS.lua\n"
+
+#: clear_GPS.lua:67
+msgid "clear GPS data"
+msgstr "effacer données GPS"
+
+#: clear_GPS.lua:69
+msgid "Clear GPS data from selected images"
+msgstr "Effacer les données GPS des images sélectionnées"
+
+#: clear_GPS.lua:75
+msgid "Clear GPS data"
+msgstr "Effacer les données GPS"

@@ -1,0 +1,49 @@
+name: Ensure that the code is properly clang-formatted
+
+on:
+  push:
+    branches: [ develop, stable ]
+  pull_request_target:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  clang-format-check:
+    uses: ./.github/workflows/CI-linux.yml
+    with:
+      os: linux
+      distro: "debian:trixie-slim"
+      compiler-family: LLVM
+      compiler-version: 18
+      compiler-CC: clang-18
+      compiler-CXX: clang++-18
+      flavor: ClangFormat
+  clang-format-complain:
+    needs: [ clang-format-check ]
+    if: always() && github.event_name == 'pull_request_target' && needs.clang-format-check.outputs.clang-format-artifact-url != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            The proposed diff is not `clang-format`ted.
+            To make this check pass, download the following patch
+            (via browser, you must be logged-in in order for this URL to work),
+            (NOTE: save it into the repo checkout dir for the snippet to work)
+            ${{ needs.clang-format-check.outputs.clang-format-artifact-url }}
+            ... and run:
+            ```bash
+            cd <path/to/repo/checkout> # NOTE: use your own path here
+            unzip clang-format.patch.zip
+            git stash # Temporairly stash away any preexisting diff
+            git apply clang-format.patch # Apply the diff
+            git add -u # Stage changed files
+            git commit -m "Applying clang-format" # Commit the patch
+            git push
+            git stash pop # Unstast preexisting diff
+            rm clang-format.patch.zip clang-format.patch
+            ```

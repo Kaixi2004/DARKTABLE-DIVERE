@@ -1,0 +1,79 @@
+-- default  lua require can't handle yielding across "require" calls
+-- This version is implemented in pure-lua and avoids the problem
+-- override the require function for everybody
+-- this version is required for darktable.collection to function as a table
+
+local orig_ipairs = ipairs
+local function ipairs_iterator(st, var)
+  var = var + 1
+  local val = st[var]
+  if val ~= nil then
+    return var, st[var]
+  end
+end
+
+ipairs = function(t)
+  if getmetatable(t) ~= nil then -- t has metatable
+    return ipairs_iterator, t, 0
+  else
+    return orig_ipairs(t)
+  end
+end
+
+-- global flag indicating darktable has completed gui initialization and it is safe 
+-- to register a lib in lighttable view
+-- fixes issue #19197
+
+darktable_gui_safe = false
+
+local dt = require "darktable"
+
+
+-- catch the view changed event from none to lighttable to ensure that
+-- darktable gui initialization is complete
+
+dt.register_event(
+  "luarc_initialization", "view-changed",
+  function(event, old_view, new_view)
+    ov = nil
+    if not old_view then
+      ov = "none"
+    else
+      ov = old_view.id
+    end
+    if ov == "none" and new_view.id == "lighttable" then
+      darktable_gui_safe = true
+    end
+  end
+)
+
+--[[
+    Work around (fix) for darktable issue 21035
+
+    If darktable is started with a empty or non-existent configuration directory
+    the splash screen and Lua initialization may have a race condition that results
+    in a darktable crash.  
+
+    To work around that the following checks to see if there is an existing preference, 
+    which would mean the configuration directory is not empty, If the preference does
+    not exist, a 1 second sleep is added to allow the darktable main window to start 
+    before Lua tries to create widgets.
+
+    A preference is set to show that darktable has created a first run and doesn't need
+    to do a Lua sleep when starting
+]]
+
+if not dt.preferences.read("script_manager", "check_update", "bool") then
+  if not dt.preferences.read("luarc", "darktable_first_run_complete", "bool") then
+    dt.control.sleep(1000)
+  end
+end
+dt.preferences.write("luarc", "darktable_first_run_complete", "bool", true)
+
+-- check for gui so that we don't hang darktable-cli
+
+if dt.configuration.has_gui then
+  require "tools/script_manager"
+end
+
+-- vim: shiftwidth=2 expandtab tabstop=2 cindent syntax=lua
