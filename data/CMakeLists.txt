@@ -262,3 +262,10 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/darktablerc DESTINATION ${CMAKE_INSTAL
 if ((NOT WIN32) OR BUILD_MSYS2_INSTALL)
   install(FILES darktable.bash DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/darktable COMPONENT DTApplication)
 endif()
+
+#
+# DiVERE integration: ship color profiles (IDT / working spaces) and the
+# Deep White Balance AI model inside the application package.
+#
+install(DIRECTORY "color/json" DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/darktable/color COMPONENT DTApplication)
+install(DIRECTORY "negadoctor_ai" DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/darktable COMPONENT DTApplication)

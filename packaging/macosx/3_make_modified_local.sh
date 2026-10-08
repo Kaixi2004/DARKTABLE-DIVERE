@@ -189,6 +189,9 @@ function install_share {
 
     # Define source and target directory
     srcShareDir="$homebrewHome/share/$1"
+    if [ ! -d "$srcShareDir" ]; then
+        srcShareDir="$dtImageMagickHome/share/$1"
+    fi
     targetShareDir="$dtResourcesDir/share/"
 
     # Copy share directory
@@ -243,10 +246,15 @@ for dtExecutable in $dtExecutables; do
 done
 
 # Add homebrew shared objects
+dtImageMagickHome="/Users/yangkaixi/homebrew"
 dtSharedObjDirs="ImageMagick gtk-3.0 gdk-pixbuf-2.0 gio"
 for dtSharedObj in $dtSharedObjDirs; do
     mkdir "$dtResourcesDir"/lib/"$dtSharedObj"
-    cp -LR "$homebrewHome"/lib/"$dtSharedObj"/* "$dtResourcesDir"/lib/"$dtSharedObj"/
+    if [ "$dtSharedObj" = "ImageMagick" ]; then
+        cp -LR "$dtImageMagickHome"/lib/"$dtSharedObj"/* "$dtResourcesDir"/lib/"$dtSharedObj"/
+    else
+        cp -LR "$homebrewHome"/lib/"$dtSharedObj"/* "$dtResourcesDir"/lib/"$dtSharedObj"/
+    fi
 done
 
 # Homebrew's `sdl2` is sdl2-compat, which dlopen()s libSDL3 at runtime —
@@ -313,7 +321,7 @@ sed -i '' "s#$homebrewHome/lib/gdk-pixbuf-2.0/2.10.0/loaders#@executable_path/..
 mv "$loadersCacheFile" "$dtResourcesDir"/etc/gtk-3.0/
 
 # ImageMagick config files
-cp -R $homebrewHome/Cellar/imagemagick/*/etc $dtResourcesDir
+cp -R $dtImageMagickHome/Cellar/imagemagick/*/etc $dtResourcesDir
 
 # Install homebrew dependencies of lib subdirectories
 dtLibFiles=$(find -E "$dtResourcesDir"/lib/*/* -regex '.*\.(so|dylib)')

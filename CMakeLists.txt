@@ -184,7 +184,8 @@ endfunction(generate_version_gen_c)
 if(DEFINED PROJECT_VERSION AND PROJECT_VERSION VERSION_GREATER 0)
   #project version is defined by -D on the cmake command line
   # only use that value, do not update it at make time
-  generate_version_gen_c(${PROJECT_VERSION} "version override")
+  # DiVERE branding: display version as "5.6.2-银盐菲林日记" in splash / about / --version
+  generate_version_gen_c("5.6.2-银盐菲林日记" "version override")
 else(DEFINED PROJECT_VERSION AND PROJECT_VERSION VERSION_GREATER 0)
   if(NOT SOURCE_PACKAGE) # i.e., a git checkout
     # this part is setting the corresponding CMake variable which gets used for example when creating a source package

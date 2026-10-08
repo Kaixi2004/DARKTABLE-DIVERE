@@ -50,8 +50,8 @@ static GtkWidget *_get_logo()
 
   gchar *image_file =
     season == DT_LOGO_SEASON_NONE
-    ? g_strdup_printf("%s/pixmaps/idbutton.svg", darktable.datadir)
-    : g_strdup_printf("%s/pixmaps/idbutton-%d.svg", darktable.datadir, season);
+    ? g_strdup_printf("%s/pixmaps/idbutton.png", darktable.datadir)
+    : g_strdup_printf("%s/pixmaps/idbutton-%d.png", darktable.datadir, season);
   GdkPixbuf *logo_image =
     gdk_pixbuf_new_from_file_at_size(image_file, ICON_SIZE, -1, NULL);
   g_free(image_file);
@@ -74,7 +74,7 @@ static GtkWidget *_get_program_name()
   // get the darktable name in special font
   GtkWidget *program_name = NULL;
   gchar *image_file =
-    g_strdup_printf("%s/pixmaps/darktable.svg", darktable.datadir);
+    g_strdup_printf("%s/pixmaps/darktable.png", darktable.datadir);
   GdkPixbuf *prog_name_image =
     gdk_pixbuf_new_from_file_at_size(image_file, PROGNAME_SIZE, -1, NULL);
   g_free(image_file);
