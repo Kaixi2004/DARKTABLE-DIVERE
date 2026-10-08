@@ -490,9 +490,9 @@ static inline void _process_pixel(const float *const in,
       const double m00 = d->matrix[0][0], m01 = d->matrix[0][1], m02 = d->matrix[0][2];
       const double m10 = d->matrix[1][0], m11 = d->matrix[1][1], m12 = d->matrix[1][2];
       const double m20 = d->matrix[2][0], m21 = d->matrix[2][1], m22 = d->matrix[2][2];
-      nr = PIVOT_M + pr * m00 + pg * m10 + pb * m20;
-      ng = PIVOT_M + pr * m01 + pg * m11 + pb * m21;
-      nb = PIVOT_M + pr * m02 + pg * m12 + pb * m22;
+      nr = PIVOT_M + pr * m00 + pg * m01 + pb * m02;
+      ng = PIVOT_M + pr * m10 + pg * m11 + pb * m12;
+      nb = PIVOT_M + pr * m20 + pg * m21 + pb * m22;
     }
     else
     {
