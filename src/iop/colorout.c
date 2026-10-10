@@ -579,7 +579,13 @@ void commit_params(dt_iop_module_t *self, dt_iop_params_t *p1, dt_dev_pixelpipe_
   d->lut[0][0] = -1.0f;
   d->lut[1][0] = -1.0f;
   d->lut[2][0] = -1.0f;
-  piece->process_cl_ready = TRUE;
+  // DiVERE fix: run colorout on the CPU. On several GPUs (AMD iGPU, some
+  // Intel iGPUs) the OpenCL RGB->Lab conversion of the input buffer with the
+  // custom Endura working space fails (CL_IMAGE_FORMAT_NOT_SUPPORTED /
+  // allocation failure), the fallback then feeds RGB data into this Lab
+  // module and the export comes out black. Forcing the CPU path makes the
+  // input conversion run through the (reliable) CPU matrix path.
+  piece->process_cl_ready = FALSE;
 
   /* if we are exporting then check and set usage of override profile */
   if(dt_pipe_is_export(pipe))
