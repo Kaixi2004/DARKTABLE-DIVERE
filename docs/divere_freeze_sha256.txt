@@ -1,0 +1,29 @@
+# DiVERE 冻结清单 SHA256
+# =====================================================================
+# 一、原始冻结基线（OpenCL 支持 + 路径清理改造前后逐字节一致）
+# 记录时间：2026-10-13；9 项文件在本次改造中零改动。
+# =====================================================================
+  676a90cbaecde9721fdb943be446b0ca4c2081edbcef12133358e57c537baaa4  src/iop/negadoctor.c
+  dae72436ee786120146e5704d05c715d189d3922ec32b6ce12b2140c80501061  src/iop/negadoctor_curves.h   [原始版本，见下方修复记录]
+  cf23ab685e861193e9f40d7e09390b4191bb34d606a0eeb12a6096d0e9d0ca43  src/iop/colorin.c
+  343badd6700ab2e945ba40c211638ea3bf8d097c2f872d94481acaf629f5a5da  src/common/colorspaces.c
+  0650b5a7f55cc46b1abfd056c2fd95a74ac11224b58877e2cf75d72e6240d64a  src/common/colorspaces.h
+  b724e5a9e32093bf7b7ee0306c23cbdab916438eb7b76f6f14ddcdd9f0832c11  data/color/json/Kodak2383.json
+  01ed2c381c025b53233653f6eddbf458441f77900b822ec8c3875ead36666308  data/color/json/KodakEnduraPremier.json
+  8b8e06ccc448dcc4770b73f59ac88b0db92952d851ed0698eaff01b1ea12d3e3  data/negadoctor_ai/config.json
+  50503b7f6cfb0663eba0d0d61cbc68e8e93e56581db3143b203bab163f7c9f54  data/negadoctor_ai/net_awb.onnx
+
+# =====================================================================
+# 二、Ilford 相纸曲线修复记录（2026-10-13）
+# 问题：负片处理"相纸"页 Ilford MGFB 0/00/1/2/3/4/5 一使用画面即纯白。
+# 根因：src/iop/negadoctor_curves.h 中 7 条 Ilford rgb 曲线的 x 坐标为
+#       递减序列（0.81→0.33），违反 np.interp 必须 xp 递增的前提，插值
+#       恒命中首点 y≈0.995，密度被压到≈0 → 输出≈0.95 全白。
+#       （已对照 DiVERE 上游源码与 config/curves/Ilford MGFB *.json：
+#        公式完全一致、数据逐点一致——该缺陷为 DiVERE 上游数据本身方向
+#        写反，非整合引入。）
+# 修复：仅将 7 条 Ilford rgb 数组的点对顺序反转（每点 (x,y) 原样保留），
+#       使 x 递增满足 np.interp 前提；不修改任何公式/插值函数/滑块/
+#       交互逻辑，其余 8 条曲线（Kodak 系列）与全部冻结文件零改动。
+# 修复后哈希（其余 8 项与原始基线一致）：
+  e2b257a714d1fc65b95f4f7f98e92666b7e9cf89c2a714634d01315fae4f160b  src/iop/negadoctor_curves.h   [Ilford 修复版]

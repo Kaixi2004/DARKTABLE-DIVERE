@@ -1,0 +1,200 @@
+name: Build DiVERE releases
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+      - 'release-*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: divere-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-macos:
+    name: macOS ${{ matrix.arch_name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            arch_name: Intel x86_64
+            artifact_arch: x86_64
+          - runner: macos-15
+            arch_name: Apple Silicon arm64
+            artifact_arch: arm64
+
+    steps:
+      - name: Check out DiVERE source
+        uses: actions/checkout@v5
+        with:
+          submodules: false
+          fetch-depth: 0
+
+      - name: Install Homebrew dependencies
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: |
+          brew bundle --file "$GITHUB_WORKSPACE/.ci/Brewfile"
+
+      - name: Install GraphicsMagick
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: |
+          brew install graphicsmagick
+
+      - name: Refresh lensfun data
+        run: lensfun-update-data || true
+
+      - name: Build DiVERE DMG
+        run: |
+          chmod +x "$GITHUB_WORKSPACE/packaging/divere/build-macos.sh"
+          "$GITHUB_WORKSPACE/packaging/divere/build-macos.sh"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: darktable-DiVERE-macos-${{ matrix.artifact_arch }}
+          path: build/divere-${{ matrix.artifact_arch }}/out/*.dmg
+          if-no-files-found: error
+          retention-days: 14
+
+  build-windows:
+    name: Windows x64
+    runs-on: windows-2022
+
+    steps:
+      - name: Check out DiVERE source
+        uses: actions/checkout@v5
+        with:
+          submodules: false
+          fetch-depth: 0
+
+      - name: Install Inno Setup
+        shell: bash
+        run: choco install innosetup --no-progress
+
+      - name: Set up MSYS2 UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            cmake
+            ninja
+            gcc
+            pkg-config
+            make
+            tar
+            gdb
+            dos2unix
+            perl
+            intltool
+            mingw-w64-ucrt-x86_64-python
+            mingw-w64-ucrt-x86_64-cc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-pkg-config
+            mingw-w64-ucrt-x86_64-libtiff
+            mingw-w64-ucrt-x86_64-libjpeg-turbo
+            mingw-w64-ucrt-x86_64-libpng
+            mingw-w64-ucrt-x86_64-libwebp
+            mingw-w64-ucrt-x86_64-librsvg
+            mingw-w64-ucrt-x86_64-libxml2
+            mingw-w64-ucrt-x86_64-lensfun
+            mingw-w64-ucrt-x86_64-lcms2
+            mingw-w64-ucrt-x86_64-librttopo
+            mingw-w64-ucrt-x86_64-libspatialite
+            mingw-w64-ucrt-x86_64-sqlite3
+            mingw-w64-ucrt-x86_64-libarchive
+            mingw-w64-ucrt-x86_64-curl
+            mingw-w64-ucrt-x86_64-openexr
+            mingw-w64-ucrt-x86_64-json-c
+            mingw-w64-ucrt-x86_64-pugixml
+            mingw-w64-ucrt-x86_64-isl
+            mingw-w64-ucrt-x86_64-opencl-headers
+            mingw-w64-ucrt-x86_64-graphene
+            mingw-w64-ucrt-x86_64-flickcurl
+            mingw-w64-ucrt-x86_64-libxslt
+            mingw-w64-ucrt-x86_64-p11-kit
+            mingw-w64-ucrt-x86_64-libgphoto2
+            mingw-w64-ucrt-x86_64-graphicsmagick
+            mingw-w64-ucrt-x86_64-gtk3
+            mingw-w64-ucrt-x86_64-webp-pixbuf-loader
+            mingw-w64-ucrt-x86_64-adwaita-icon-theme
+            mingw-w64-ucrt-x86_64-hicolor-icon-theme
+            mingw-w64-ucrt-x86_64-winpthreads
+            mingw-w64-ucrt-x86_64-libheif
+            mingw-w64-ucrt-x86_64-libavif
+            mingw-w64-ucrt-x86_64-portmidi
+            mingw-w64-ucrt-x86_64-dbus
+            mingw-w64-ucrt-x86_64-SDL2
+            mingw-w64-ucrt-x86_64-zlib
+            mingw-w64-ucrt-x86_64-bzip2
+            mingw-w64-ucrt-x86_64-openjpeg2
+            mingw-w64-ucrt-x86_64-expat
+            mingw-w64-ucrt-x86_64-libssh
+            mingw-w64-ucrt-x86_64-libssh2
+            mingw-w64-ucrt-x86_64-llvm
+            mingw-w64-ucrt-x86_64-python-jsonschema
+            mingw-w64-ucrt-x86_64-zstd
+            mingw-w64-ucrt-x86_64-xz
+            mingw-w64-ucrt-x86_64-openal
+            mingw-w64-ucrt-x86_64-fltk
+            mingw-w64-ucrt-x86_64-x264
+            mingw-w64-ucrt-x86_64-x265
+            mingw-w64-ucrt-x86_64-libde265
+            mingw-w64-ucrt-x86_64-libjxl
+            mingw-w64-ucrt-x86_64-imath
+            mingw-w64-ucrt-x86_64-gmic
+            mingw-w64-ucrt-x86_64-libyaml
+            mingw-w64-ucrt-x86_64-potrace
+
+      - name: Refresh lensfun data
+        shell: msys2 {0}
+        run: lensfun-update-data || true
+
+      - name: Build DiVERE Windows installer
+        shell: msys2 {0}
+        env:
+          ISCC_EXE: /c/Program Files (x86)/Inno Setup 6/ISCC.exe
+        run: |
+          chmod +x "$GITHUB_WORKSPACE/packaging/divere/build-windows.sh"
+          "$GITHUB_WORKSPACE/packaging/divere/build-windows.sh"
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: darktable-DiVERE-windows-x64
+          path: build/divere-windows/installer-work/installer/*.exe
+          if-no-files-found: error
+          retention-days: 14
+
+  github-release:
+    name: Publish tag release
+    needs:
+      - build-macos
+      - build-windows
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all installers
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: darktable-DiVERE-*
+          merge-multiple: true
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/**/*
+          fail_on_unmatched_files: true
+          draft: true
+          prerelease: false
