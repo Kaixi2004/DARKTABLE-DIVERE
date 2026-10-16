@@ -1,0 +1,102 @@
+; DiVERE-specific Inno Setup script.
+; This is not the upstream packaging/windows/darktable.iss.in file.
+
+#define MyAppName "darktable"
+#define MyAppVersion "@VERSION@"
+#define MyAppPublisher "darktable DiVERE"
+#define MyAppExeName "darktable.exe"
+#define MyAppOutputName "@OUTPUT_NAME@"
+#define GphotoVersion "@GPHOTO_VERSION@"
+#define GphotoPortVersion "@GPHOTO_PORT_VERSION@"
+
+[Setup]
+AppId={{849C55A4-2778-44EB-83BF-BA40819369A3}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+DefaultDirName={autopf}\darktable
+DefaultGroupName=darktable
+DisableProgramGroupPage=yes
+UninstallDisplayIcon={app}\bin\{#MyAppExeName}
+OutputDir=installer
+OutputBaseFilename={#MyAppOutputName}
+SetupIconFile=assets\darktable.ico
+WizardSmallImageFile=assets\darktable.png
+Compression=lzma2/max
+SolidCompression=yes
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+PrivilegesRequiredOverridesAllowed=dialog
+WizardStyle=modern
+MinVersion=10.0.19000
+
+[Languages]
+Name: "eng"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+[Files]
+Source: "bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "share\*"; DestDir: "{app}\share"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "assets\AUTHORS.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "assets\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "assets\README-DiVERE.txt"; DestDir: "{app}"; Flags: ignoreversion
+
+[Icons]
+Name: "{group}\darktable"; Filename: "{app}\bin\{#MyAppExeName}"
+Name: "{group}\darktable CLI"; Filename: "{app}\bin\darktable-cli.exe"
+Name: "{group}\Uninstall darktable"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\darktable"; Filename: "{app}\bin\{#MyAppExeName}"; Tasks: desktopicon
+
+[Registry]
+Root: HKA; Subkey: "{code:EnvironmentKey}"; ValueType: string; ValueName: "CAMLIBS"; ValueData: "{app}\lib\libgphoto2\{#GphotoVersion}"; Flags: preservestringtype uninsdeletevalue
+Root: HKA; Subkey: "{code:EnvironmentKey}"; ValueType: string; ValueName: "IOLIBS"; ValueData: "{app}\lib\libgphoto2_port\{#GphotoPortVersion}"; Flags: preservestringtype uninsdeletevalue
+Root: HKA; Subkey: "{code:EnvironmentKey}"; ValueType: string; ValueName: "GDK_PIXBUF_MODULE_FILE"; ValueData: "{app}\lib\gdk-pixbuf-2.0\2.10.0\loaders.cache"; Flags: preservestringtype uninsdeletevalue
+Root: HKA; Subkey: "{code:EnvironmentKey}"; ValueType: string; ValueName: "GTK_IM_MODULE_FILE"; ValueData: "{app}\lib\gtk-3.0\3.0.0\immodules.cache"; Flags: preservestringtype uninsdeletevalue
+Root: HKA; Subkey: "{code:EnvironmentKey}"; ValueType: string; ValueName: "GIO_MODULE_DIR"; ValueData: "{app}\lib\gio\modules"; Flags: preservestringtype uninsdeletevalue
+Root: HKA; Subkey: "{code:EnvironmentKey}"; ValueType: string; ValueName: "GSETTINGS_SCHEMA_DIR"; ValueData: "{app}\share\glib-2.0\schemas"; Flags: preservestringtype uninsdeletevalue
+Root: HKA; Subkey: "{code:EnvironmentKey}"; ValueType: string; ValueName: "GTK_DATA_PREFIX"; ValueData: "{app}"; Flags: preservestringtype uninsdeletevalue
+Root: HKA; Subkey: "{code:EnvironmentKey}"; ValueType: string; ValueName: "GTK_EXE_PREFIX"; ValueData: "{app}"; Flags: preservestringtype uninsdeletevalue
+Root: HKA; Subkey: "{code:EnvironmentKey}"; ValueType: string; ValueName: "XDG_DATA_DIRS"; ValueData: "{app}\share"; Flags: preservestringtype uninsdeletevalue
+
+[Run]
+Filename: "{app}\bin\{#MyAppExeName}"; Description: "{cm:LaunchProgram,darktable}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+function EnvironmentKey(Param: string): string;
+begin
+  if IsAdminInstallMode then
+    Result := 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+  else
+    Result := 'Environment';
+end;
+
+procedure ReplaceInstalledPaths(const FileName: String);
+var
+  Lines: TArrayOfString;
+  AppDir: String;
+  i: Integer;
+begin
+  AppDir := AddBackslash(ExpandConstant('{app}'));
+  if LoadStringsFromFile(FileName, Lines) then
+  begin
+    for i := 0 to GetArrayLength(Lines) - 1 do
+    begin
+      StringChangeEx(Lines[i], '@APP_DIR@/', AppDir, True);
+      StringChangeEx(Lines[i], '@APP_DIR@\', AppDir, True);
+    end;
+    SaveStringsToFile(FileName, Lines, False);
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+  begin
+    ReplaceInstalledPaths(ExpandConstant('{app}\lib\gdk-pixbuf-2.0\2.10.0\loaders.cache'));
+    ReplaceInstalledPaths(ExpandConstant('{app}\lib\gtk-3.0\3.0.0\immodules.cache'));
+  end;
+end;

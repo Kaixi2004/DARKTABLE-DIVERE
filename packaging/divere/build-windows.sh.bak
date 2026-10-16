@@ -1,0 +1,277 @@
+#!/bin/bash
+#
+# DiVERE-specific Windows UCRT64 release builder.
+# Run inside the MSYS2 UCRT64 shell. It does not use packaging/windows/darktable.iss.in.
+#
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SRC_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+VERSION="5.6.1"
+DISPLAY_VERSION="5.6.1-银盐菲林日记"
+OUTPUT_NAME="darktable-DiVERE-${VERSION}-win64"
+BUILD_DIR="$SRC_DIR/build/divere-windows"
+DEPS_DIR="$BUILD_DIR/deps"
+ROOT="$BUILD_DIR/package"
+PACKAGE_ROOT="$BUILD_DIR/installer-work"
+JOBS="${NUMBER_OF_PROCESSORS:-$(nproc)}"
+MINGW_PREFIX="${MINGW_PREFIX:-/ucrt64}"
+MINGW_WIN="$(cygpath -w "$MINGW_PREFIX")"
+DEPS_WIN="$(cygpath -w "$DEPS_DIR")"
+ROOT_WIN="$(cygpath -w "$ROOT")"
+
+echo "==> Cleaning previous DiVERE Windows build"
+rm -rf "$BUILD_DIR"
+mkdir -p "$DEPS_DIR" "$ROOT" "$PACKAGE_ROOT"
+
+echo "==> Building Exiv2 with CR3/HEIF BMFF support"
+EXIV2_VERSION="0.27.7"
+EXIV2_ARCHIVE="exiv2-$EXIV2_VERSION.tar.gz"
+curl -Lf "https://github.com/Exiv2/exiv2/archive/refs/tags/v$EXIV2_VERSION.tar.gz" -o "$BUILD_DIR/$EXIV2_ARCHIVE"
+tar -C "$BUILD_DIR" -xf "$BUILD_DIR/$EXIV2_ARCHIVE"
+EXIV2_BUILD="$BUILD_DIR/exiv2-$EXIV2_VERSION-build"
+cmake -S "$BUILD_DIR/exiv2-$EXIV2_VERSION" -B "$EXIV2_BUILD" -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DBUILD_SHARED_LIBS=ON \
+  -DEXIV2_ENABLE_XMP=ON \
+  -DEXIV2_ENABLE_VIDEO=ON \
+  -DEXIV2_ENABLE_PNG=ON \
+  -DEXIV2_ENABLE_NLS=OFF \
+  -DEXIV2_ENABLE_LENSDATA=ON \
+  -DEXIV2_ENABLE_CURL=ON \
+  -DEXIV2_ENABLE_SSH=ON \
+  -DEXIV2_ENABLE_BMFF=ON \
+  -DEXIV2_ENABLE_WEBREADY=ON \
+  -DEXIV2_ENABLE_WIN_UNICODE=ON \
+  -DEXIV2_TEAM_WARNINGS_AS_ERRORS=OFF \
+  -DEXIV2_TEAM_EXTRA_WARNINGS=OFF \
+  -DEXIV2_TEAM_USE_SANITIZERS=OFF \
+  -DCMAKE_INSTALL_PREFIX="$DEPS_WIN"
+cmake --build "$EXIV2_BUILD" --parallel "$JOBS"
+cmake --install "$EXIV2_BUILD"
+mkdir -p "$ROOT/bin"
+cp -f "$DEPS_DIR/bin/libexiv2.dll" "$ROOT/bin/libexiv2.dll"
+
+echo "==> Configuring darktable DiVERE for Windows x64"
+cmake -S "$SRC_DIR" -B "$BUILD_DIR/cmake" -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX="$ROOT_WIN" \
+  -DCMAKE_PREFIX_PATH="$DEPS_WIN" \
+  -DBINARY_PACKAGE_BUILD=ON \
+  -DBUILD_MSYS2_INSTALL=ON \
+  -DUSE_AI=ON \
+  -DUSE_OPENCL=ON \
+  -DUSE_OPENMP=ON \
+  -DUSE_LUA=ON \
+  -DUSE_CAMERA_SUPPORT=ON \
+  -DUSE_GRAPHICSMAGICK=ON \
+  -DUSE_IMAGEMAGICK=OFF \
+  -DUSE_GMIC=ON \
+  -DUSE_MAP=ON \
+  -DUSE_SDL2=ON \
+  -DUSE_PORTMIDI=ON \
+  -DUSE_JXL=ON \
+  -DUSE_AVIF=ON \
+  -DUSE_HEIF=ON \
+  -DUSE_OPENEXR=ON \
+  -DUSE_OPENJPEG=ON \
+  -DUSE_WEBP=ON \
+  -DUSE_XCF=ON \
+  -DUSE_COLORD=OFF \
+  -DUSE_KWALLET=OFF \
+  -DBUILD_PRINT=OFF \
+  -DBUILD_CMSTEST=OFF \
+  -DBUILD_CURVE_TOOLS=ON \
+  -DBUILD_NOISE_TOOLS=ON \
+  -DTESTBUILD_OPENCL_PROGRAMS=OFF \
+  -DPROJECT_VERSION="$VERSION" \
+  -DDT_VERSION_STRING="$DISPLAY_VERSION"
+
+assert_features() {
+  local feature
+  for feature in USE_AI USE_OPENCL USE_CAMERA_SUPPORT USE_GRAPHICSMAGICK USE_GMIC USE_LUA USE_MAP USE_SDL2 USE_PORTMIDI USE_JXL USE_AVIF USE_HEIF USE_OPENEXR USE_OPENJPEG USE_WEBP USE_XCF BUILD_CURVE_TOOLS BUILD_NOISE_TOOLS; do
+    if ! grep -q "^${feature}:BOOL=ON$" "$BUILD_DIR/cmake/CMakeCache.txt"; then
+      echo "ERROR: required feature $feature was not enabled by CMake" >&2
+      grep "^${feature}:" "$BUILD_DIR/cmake/CMakeCache.txt" >&2 || true
+      exit 1
+    fi
+  done
+}
+assert_features
+
+echo "==> Building"
+cmake --build "$BUILD_DIR/cmake" --parallel "$JOBS"
+
+echo "==> Installing into portable prefix"
+cmake --install "$BUILD_DIR/cmake"
+cp -f "$DEPS_DIR/bin/libexiv2.dll" "$ROOT/bin/libexiv2.dll"
+
+echo "==> Copying runtime-loadable MSYS2 modules"
+copy_lib_tree() {
+  local name="$1"
+  if [ -e "$MINGW_PREFIX/lib/$name" ]; then
+    mkdir -p "$ROOT/lib"
+    rm -rf "$ROOT/lib/$name"
+    cp -RL "$MINGW_PREFIX/lib/$name" "$ROOT/lib/$name"
+  fi
+}
+copy_share_tree() {
+  local name="$1"
+  if [ -e "$MINGW_PREFIX/share/$name" ]; then
+    mkdir -p "$ROOT/share"
+    rm -rf "$ROOT/share/$name"
+    cp -RL "$MINGW_PREFIX/share/$name" "$ROOT/share/$name"
+  fi
+}
+copy_lib_tree "gdk-pixbuf-2.0"
+copy_lib_tree "gtk-3.0"
+copy_lib_tree "gio"
+copy_lib_tree "libgphoto2"
+copy_lib_tree "libgphoto2_port"
+copy_lib_tree "libheif"
+for gm_dir in "$MINGW_PREFIX"/lib/GraphicsMagick-*; do
+  [ -e "$gm_dir" ] && copy_lib_tree "$(basename "$gm_dir")"
+done
+
+for share_name in locale icons mime themes iso-codes lensfun; do
+  copy_share_tree "$share_name"
+done
+mkdir -p "$ROOT/share/glib-2.0/schemas"
+cp -L "$MINGW_PREFIX"/share/glib-2.0/schemas/*.gschema.xml "$ROOT/share/glib-2.0/schemas/" 2>/dev/null || true
+glib-compile-schemas "$ROOT/share/glib-2.0/schemas"
+
+echo "==> Collecting all direct and transitive DLL dependencies"
+python - "$ROOT" "$MINGW_PREFIX" <<'PY'
+import os
+import pathlib
+import re
+import shutil
+import subprocess
+import sys
+
+root = pathlib.Path(sys.argv[1]).resolve()
+mingw = pathlib.Path(sys.argv[2]).resolve()
+queue = []
+seen = set()
+
+for pattern in ("bin/*.exe", "bin/*.dll", "lib/**/*.dll"):
+    for path in root.glob(pattern):
+        if path.is_file() and path not in queue:
+            queue.append(path)
+
+def normalize_path(raw):
+    raw = raw.strip().strip('"')
+    if not raw or raw.startswith("?"):
+        return None
+    candidate = pathlib.Path(raw)
+    if candidate.exists():
+        return candidate.resolve()
+    try:
+        converted = subprocess.run(["cygpath", "-u", raw], capture_output=True, text=True, check=False)
+        if converted.returncode == 0:
+            candidate = pathlib.Path(converted.stdout.strip())
+            if candidate.exists():
+                return candidate.resolve()
+    except OSError:
+        pass
+    return None
+
+def dependencies(path):
+    result = subprocess.run(["ldd", str(path)], capture_output=True, text=True, check=False)
+    paths = []
+    for line in result.stdout.splitlines():
+        if "=>" not in line:
+            continue
+        right = line.split("=>", 1)[1].strip()
+        raw = right.rsplit(" (", 1)[0].strip()
+        resolved = normalize_path(raw)
+        if resolved:
+            paths.append(resolved)
+    return paths
+
+while queue:
+    path = queue.pop(0)
+    if path in seen:
+        continue
+    seen.add(path)
+    for dep in dependencies(path):
+        try:
+            dep.relative_to(mingw)
+        except ValueError:
+            continue
+        if dep.suffix.lower() != ".dll":
+            continue
+        target = root / "bin" / dep.name
+        if not target.exists():
+            shutil.copy2(dep, target)
+            queue.append(target)
+        elif target.resolve() not in seen:
+            queue.append(target)
+
+print(f"Scanned {len(seen)} executable/DLL files")
+PY
+
+# DirectML is delay-loaded by ONNX Runtime and must be included explicitly.
+for ort_dir in "$BUILD_DIR"/cmake/_deps/onnxruntime/lib "$BUILD_DIR"/cmake/_deps/onnxruntime/onnxruntime-extract/runtimes/win-x64/native; do
+  if [ -d "$ort_dir" ]; then
+    cp -f "$ort_dir"/*.dll "$ROOT/bin/" 2>/dev/null || true
+  fi
+done
+
+echo "==> Generating portable GTK and GDK-Pixbuf caches"
+LOADER_CACHE="$ROOT/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache"
+IM_CACHE="$ROOT/lib/gtk-3.0/3.0.0/immodules.cache"
+GDK_PIXBUF_MODULEDIR="$ROOT/lib/gdk-pixbuf-2.0/2.10.0/loaders" \
+  gdk-pixbuf-query-loaders "$ROOT"/lib/gdk-pixbuf-2.0/2.10.0/loaders/*.dll \
+  | sed "s#$ROOT#@APP_DIR@#g" > "$LOADER_CACHE" || true
+gtk-query-immodules-3.0 "$ROOT"/lib/gtk-3.0/3.0.0/immodules/*.dll \
+  | sed "s#$ROOT#@APP_DIR@#g" > "$IM_CACHE" || true
+
+echo "==> Preparing installer payload and branding assets"
+mkdir -p "$PACKAGE_ROOT/assets"
+cp -R "$ROOT/." "$PACKAGE_ROOT/"
+cp "$SRC_DIR/data/pixmaps/dt_logo_128x128.ico" "$PACKAGE_ROOT/assets/darktable.ico"
+cp "$SRC_DIR/data/pixmaps/256x256/darktable.png" "$PACKAGE_ROOT/assets/darktable.png"
+cp "$SRC_DIR/AUTHORS" "$PACKAGE_ROOT/assets/AUTHORS.txt" 2>/dev/null || true
+cp "$SRC_DIR/LICENSE" "$PACKAGE_ROOT/assets/LICENSE.txt" 2>/dev/null || true
+cat > "$PACKAGE_ROOT/assets/README-DiVERE.txt" <<EOF
+darktable DiVERE $DISPLAY_VERSION
+Windows x64 portable layout packaged by GitHub Actions.
+
+OpenCL support is built in. GPU availability depends on the graphics driver.
+EOF
+
+GPHOTO_VERSION="$(pkg-config --modversion libgphoto2)"
+GPHOTO_PORT_VERSION="$(pkg-config --modversion libgphoto2_port)"
+sed \
+  -e "s#@VERSION@#$VERSION#g" \
+  -e "s#@OUTPUT_NAME@#$OUTPUT_NAME#g" \
+  -e "s#@GPHOTO_VERSION@#$GPHOTO_VERSION#g" \
+  -e "s#@GPHOTO_PORT_VERSION@#$GPHOTO_PORT_VERSION#g" \
+  "$SCRIPT_DIR/darktable-divere.iss.in" > "$PACKAGE_ROOT/darktable.iss"
+
+echo "==> Verifying payload"
+PATH="$ROOT/bin:$PATH" "$ROOT/bin/darktable-cli.exe" --version
+for required in \
+  "$ROOT/bin/darktable.exe" \
+  "$ROOT/bin/libonnxruntime.dll" \
+  "$ROOT/bin/DirectML.dll" \
+  "$ROOT/lib/libgphoto2/$GPHOTO_VERSION" \
+  "$ROOT/lib/libgphoto2_port/$GPHOTO_PORT_VERSION" \
+  "$ROOT/share/darktable/kernels" \
+  "$ROOT/share/darktable/negadoctor_ai" \
+  "$ROOT/share/darktable/lua" \
+  "$LOADER_CACHE" \
+  "$IM_CACHE"; do
+  test -e "$required"
+done
+if grep -R -I -E "($SRC_DIR|$BUILD_DIR|D:/a/|C:/msys64)" "$ROOT/lib/gdk-pixbuf-2.0" "$ROOT/lib/gtk-3.0" >/dev/null 2>&1; then
+  echo "ERROR: generated runtime caches still contain build-tree paths" >&2
+  exit 1
+fi
+
+echo "==> Building Inno Setup installer"
+ISCC_EXE="${ISCC_EXE:-/c/Program Files (x86)/Inno Setup 6/ISCC.exe}"
+(cd "$PACKAGE_ROOT" && "$ISCC_EXE" "darktable.iss")
+
+echo "==> Built $PACKAGE_ROOT/installer/$OUTPUT_NAME.exe"
