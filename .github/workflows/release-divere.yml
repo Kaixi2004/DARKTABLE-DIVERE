@@ -70,7 +70,7 @@ jobs:
           "$GITHUB_WORKSPACE/packaging/divere/build-macos.sh"
 
       - name: Upload DMG
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: darktable-DiVERE-macos-x86_64
           path: build/divere-x86_64/out/*.dmg
@@ -113,7 +113,7 @@ jobs:
           "$GITHUB_WORKSPACE/packaging/divere/build-macos.sh"
 
       - name: Upload DMG
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: darktable-DiVERE-macos-arm64
           path: build/divere-arm64/out/*.dmg
@@ -237,7 +237,7 @@ jobs:
           "$GITHUB_WORKSPACE/packaging/divere/build-windows.sh"
 
       - name: Upload Windows installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: darktable-DiVERE-windows-x64
           path: build/divere-windows/installer-work/installer/*.exe
@@ -391,7 +391,7 @@ jobs:
           mv -f build/Darktable-*.AppImage build/darktable-DiVERE-5.6.1-银盐菲林日记-x86_64.AppImage
 
       - name: Upload AppImage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: darktable-DiVERE-linux-x86_64
           path: build/darktable-DiVERE-5.6.1-银盐菲林日记-x86_64.AppImage
