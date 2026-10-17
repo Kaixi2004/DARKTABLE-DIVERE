@@ -623,6 +623,12 @@ static void _profile_changed(GtkWidget *widget, dt_iop_module_t *self)
     {
       p->type = pp->type;
       memcpy(p->filename, pp->filename, sizeof(p->filename));
+      // DiVERE IDT: IDT 基色 and IDT gamma only appear when the input
+      // colour profile is "无配置" (DT_COLORSPACE_NONE).
+      const gboolean idt_active = (p->type == DT_COLORSPACE_NONE);
+      gtk_widget_set_visible(g->idt_combobox, idt_active);
+      gtk_widget_set_visible(g->idt_gamma_slider,
+                             idt_active && p->type_idt != DT_COLORSPACE_NONE);
       dt_dev_add_history_item(darktable.develop, self, TRUE);
 
       DT_CONTROL_SIGNAL_RAISE(DT_SIGNAL_CONTROL_PROFILE_USER_CHANGED,
@@ -1814,9 +1820,13 @@ void gui_update(dt_iop_module_t *self)
 
   dt_bauhaus_combobox_set(g->clipping_combobox, p->normalize);
 
-  // IDT gamma: value and visibility follow the current IDT base selection
+  // DiVERE IDT: IDT 基色 and IDT gamma only appear when the input colour
+  // profile is "无配置" (DT_COLORSPACE_NONE).
+  const gboolean idt_active = (p->type == DT_COLORSPACE_NONE);
+  gtk_widget_set_visible(g->idt_combobox, idt_active);
   dt_bauhaus_slider_set(g->idt_gamma_slider, p->idt_gamma);
-  gtk_widget_set_visible(g->idt_gamma_slider, p->type_idt != DT_COLORSPACE_NONE);
+  gtk_widget_set_visible(g->idt_gamma_slider,
+                         idt_active && p->type_idt != DT_COLORSPACE_NONE);
 
   // working profile
   int idx = -1;
@@ -2133,15 +2143,18 @@ corrupted_profile:
 
   dt_image_cache_write_release(img, DT_IMAGE_CACHE_RELAXED);
 
-  // IDT gamma slider: value and visibility follow the current IDT base
+  // IDT base + gamma slider: value and visibility follow the current input
+  // profile (only shown with "无配置") and the IDT base selection.
   // (reload_defaults runs on every image switch, so this covers both user
   // changes and images loaded from history where no value-changed fires)
   if(g)
   {
     const dt_iop_colorin_params_t *const cp = (const dt_iop_colorin_params_t *)self->params;
+    const gboolean idt_active = (cp->type == DT_COLORSPACE_NONE);
+    gtk_widget_set_visible(g->idt_combobox, idt_active);
     dt_bauhaus_slider_set(g->idt_gamma_slider, cp->idt_gamma);
     gtk_widget_set_visible(g->idt_gamma_slider,
-                           cp->type_idt != DT_COLORSPACE_NONE);
+                           idt_active && cp->type_idt != DT_COLORSPACE_NONE);
   }
 
   update_profile_list(self);
@@ -2290,6 +2303,14 @@ static void update_profile_list(dt_iop_module_t *self)
   }
 }
 
+static void _idt_gamma_changed(GtkWidget *widget, dt_iop_module_t *self)
+{
+  DT_GUARD_GUI_UPDATE();
+  dt_iop_colorin_params_t *p = self->params;
+  p->idt_gamma = dt_bauhaus_slider_get(widget);
+  dt_dev_add_history_item(darktable.develop, self, TRUE);
+}
+
 void gui_init(dt_iop_module_t *self)
 {
   // pthread_mutex_lock(&darktable.plugin_threadsafe);
@@ -2302,6 +2323,7 @@ void gui_init(dt_iop_module_t *self)
 
   g->idt_combobox = dt_bauhaus_combobox_new(self);
   dt_bauhaus_widget_set_label(g->idt_combobox, NULL, N_("IDT 基色"));
+  gtk_widget_set_visible(g->idt_combobox, FALSE); // hidden until input profile is 无配置
 
   g->idt_gamma_slider = dt_bauhaus_slider_new_with_range(self, 0.5f, 2.8f, 0.005f, 1.0f, 3);
   dt_bauhaus_widget_set_label(g->idt_gamma_slider, NULL, N_("IDT gamma"));
@@ -2339,6 +2361,8 @@ void gui_init(dt_iop_module_t *self)
                    G_CALLBACK(_profile_changed), (gpointer)self);
   g_signal_connect(G_OBJECT(g->idt_combobox), "value-changed",
                    G_CALLBACK(_idticc_changed), (gpointer)self);
+  g_signal_connect(G_OBJECT(g->idt_gamma_slider), "value-changed",
+                   G_CALLBACK(_idt_gamma_changed), (gpointer)self);
   g_signal_connect(G_OBJECT(g->work_combobox), "value-changed",
                    G_CALLBACK(_workicc_changed), (gpointer)self);
 
