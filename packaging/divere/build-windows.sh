@@ -211,6 +211,17 @@ while queue:
 print(f"Scanned {len(seen)} executable/DLL files")
 PY
 
+echo "==> Bundling all MSYS2 UCRT64 runtime DLLs (fallback)"
+# The ldd-based collector above is brittle: on MSYS2, `ldd` emits dependency
+# paths in Windows/cygwin form (C:\\msys64\\... or /cygdrive/c/...) that mingw
+# python's pathlib.Path(...).exists() cannot resolve, so core runtime DLLs
+# (libintl, libglib, libarchive, libavif, ...) are silently dropped and the
+# app fails to start with "DLL not found". Bundle the full MSYS2 bin set,
+# exactly like the official darktable Windows packaging, to guarantee the
+# runtime DLLs are always present.
+mkdir -p "$ROOT/bin"
+cp -f "$MINGW_PREFIX"/bin/*.dll "$ROOT/bin/" 2>/dev/null || true
+
 # DirectML is delay-loaded by ONNX Runtime and must be included explicitly.
 # It ships in the separate Microsoft.AI.DirectML NuGet package (declared as a
 # dependency of Microsoft.ML.OnnxRuntime.DirectML 1.24.4 => AI.DirectML
@@ -280,6 +291,10 @@ for required in \
   "$ROOT/bin/darktable.exe" \
   "$ROOT/bin/onnxruntime.dll" \
   "$ROOT/bin/DirectML.dll" \
+  "$ROOT/bin/libintl-8.dll" \
+  "$ROOT/bin/libglib-2.0-0.dll" \
+  "$ROOT/bin/libarchive-13.dll" \
+  "$ROOT/bin/libavif-16.dll" \
   "$ROOT/lib/libgphoto2/$GPHOTO_VERSION" \
   "$ROOT/lib/libgphoto2_port/$GPHOTO_PORT_VERSION" \
   "$ROOT/share/darktable/kernels" \
